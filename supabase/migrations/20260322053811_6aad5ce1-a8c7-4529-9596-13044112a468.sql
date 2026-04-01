@@ -1,0 +1,1 @@
+SELECT cron.unschedule('scanner-cron-every-5min');
