@@ -96,8 +96,8 @@ function detectFvgSignals(
 
   const signals: Omit<FvgSignal, 'symbol' | 'price' | 'change24h' | 'turnover24h'>[] = [];
 
-  // Scan last 5 candles for recent FVGs/impulses
-  const scanStart = Math.max(2, len - 6);
+  // Scan only the most current candle (last closed + current)
+  const scanStart = Math.max(2, len - 3);
 
   for (let i = scanStart; i < len - 1; i++) {
     const c0 = candles[i - 1]; // candle before gap
