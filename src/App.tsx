@@ -28,6 +28,7 @@ import ReversalScanner from "./pages/ReversalScanner.tsx";
 import MomentumScanner from "./pages/MomentumScanner.tsx";
 import BreakoutScanner from "./pages/BreakoutScanner.tsx";
 import FvgScanner from "./pages/FvgScanner.tsx";
+import SupportResistance from "./pages/SupportResistance.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ const App = () => (
                   <Route path="/momentum" element={<MomentumScanner />} />
                   <Route path="/breakouts" element={<BreakoutScanner />} />
                   <Route path="/fvg" element={<FvgScanner />} />
+                  <Route path="/support-resistance" element={<SupportResistance />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
