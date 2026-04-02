@@ -228,8 +228,8 @@ Deno.serve(async (req) => {
             if (candles.length < 20) return;
             const levels = detectSRLevels(candles);
             // Only nearest strong level within 2%
-            const signal = findNearestSR(candles, levels, 0.02);
-            if (signal && signal.score >= 40) {
+            const signal = findNearestSR(candles, levels, 0.005);
+            if (signal && signal.score >= 50) {
               signal.symbol = symbol;
               signal.change24h = change24h;
               signal.timeframe = TF_LABELS[tf] || tf;
