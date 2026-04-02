@@ -68,6 +68,7 @@ const App = () => (
                   <Route path="/momentum" element={<MomentumScanner />} />
                   <Route path="/breakouts" element={<BreakoutScanner />} />
                   <Route path="/fvg" element={<FvgScanner />} />
+                  <Route path="/support-resistance" element={<SupportResistance />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>

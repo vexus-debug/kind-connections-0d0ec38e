@@ -20,6 +20,7 @@ const NAV_GROUPS = [
       { to: '/momentum', label: 'Momentum', icon: Rocket },
       { to: '/breakouts', label: 'Breakouts', icon: Crosshair },
       { to: '/fvg', label: 'FVG / Impulse', icon: Layers },
+      { to: '/support-resistance', label: 'S/R Levels', icon: Layers },
       { to: '/confluence', label: 'Confluence', icon: Zap },
       { to: '/range-scanner', label: 'Range', icon: Layers },
     ],
