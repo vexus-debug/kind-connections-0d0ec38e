@@ -24,14 +24,22 @@ interface FvgSignal {
   candleIndex: number;
   fvg?: { gapHigh: number; gapLow: number; gapSize: number; gapPct: number };
   impulse?: { bodyPct: number; rangeAtr: number; volumeRatio: number };
+  extension: {
+    emaDist9: number;       // % distance from EMA9
+    emaDist21: number;      // % distance from EMA21
+    consecutiveBars: number; // consecutive bars in same direction
+    volumeDecline: boolean; // volume declining over last 3 bars
+    rsiExtreme: boolean;    // RSI > 80 or < 20
+    extensionLevel: 'normal' | 'extended' | 'overextended' | 'exhaustion';
+  };
   confirmation: {
     atr: number;
-    atrRatio: number;        // current ATR vs 20-period avg ATR
-    bodyToRange: number;     // body / total range of candle
-    volumeRatio: number;     // volume vs 20 avg
+    atrRatio: number;
+    bodyToRange: number;
+    volumeRatio: number;
     rsi: number;
     emaAligned: boolean;
-    candlesAgo: number;      // 0 = current, 1 = last closed
+    candlesAgo: number;
   };
   timestamp: number;
 }
