@@ -102,6 +102,7 @@ export default function FvgScanner() {
   const [dirFilter, setDirFilter] = useState<'all' | 'bull' | 'bear'>('all');
   const [tfFilter, setTfFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
+  const [extFilter, setExtFilter] = useState<ExtFilter>('all');
   const [minScore, setMinScore] = useState(40);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(AUTO_REFRESH_MS);
@@ -158,6 +159,12 @@ export default function FvgScanner() {
     if (tfFilter !== 'all' && s.timeframe !== tfFilter) return false;
     if (typeFilter !== 'all' && s.signalType !== typeFilter) return false;
     if (s.score < minScore) return false;
+    if (extFilter !== 'all') {
+      const level = s.extension?.extensionLevel ?? 'normal';
+      if (extFilter === 'extended' && level === 'normal') return false;
+      if (extFilter === 'overextended' && level !== 'overextended' && level !== 'exhaustion') return false;
+      if (extFilter === 'exhaustion' && level !== 'exhaustion') return false;
+    }
     return true;
   });
 
