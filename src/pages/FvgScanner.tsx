@@ -76,7 +76,21 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
-type TypeFilter = 'all' | 'fvg' | 'impulse' | 'imbalance';
+const EXT_COLORS: Record<string, string> = {
+  normal: 'bg-muted text-muted-foreground',
+  extended: 'bg-yellow-500/15 text-yellow-400',
+  overextended: 'bg-orange-500/15 text-orange-400',
+  exhaustion: 'bg-red-500/15 text-red-400',
+};
+
+const EXT_LABELS: Record<string, string> = {
+  normal: 'NORMAL',
+  extended: 'EXTENDED',
+  overextended: 'OVEREXTENDED',
+  exhaustion: 'EXHAUSTION',
+};
+
+type ExtFilter = 'all' | 'extended' | 'overextended' | 'exhaustion';
 
 const AUTO_REFRESH_MS = 15 * 60 * 1000;
 
