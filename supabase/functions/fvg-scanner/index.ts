@@ -85,6 +85,55 @@ function calcRSI(closes: number[], period = 14): number[] {
 
 // ─── FVG & Impulse Detection ───
 
+function calcExtension(
+  candles: Candle[],
+  i: number,
+  direction: 'bull' | 'bear',
+  ema9: number[],
+  ema21: number[],
+  rsi: number,
+): FvgSignal['extension'] {
+  const close = candles[i].close;
+  const emaDist9 = ema9[i] > 0 ? ((close - ema9[i]) / ema9[i]) * 100 : 0;
+  const emaDist21 = ema21[i] > 0 ? ((close - ema21[i]) / ema21[i]) * 100 : 0;
+
+  // Count consecutive bars in same direction
+  let consecutiveBars = 0;
+  for (let j = i; j >= 1; j--) {
+    const isBull = candles[j].close > candles[j].open;
+    if ((direction === 'bull' && isBull) || (direction === 'bear' && !isBull)) {
+      consecutiveBars++;
+    } else break;
+  }
+
+  // Volume decline: check if volume is declining over last 3 bars
+  let volumeDecline = false;
+  if (i >= 2) {
+    volumeDecline = candles[i].volume < candles[i - 1].volume && candles[i - 1].volume < candles[i - 2].volume;
+  }
+
+  const rsiExtreme = rsi > 80 || rsi < 20;
+  const absEmaDist = Math.abs(emaDist21);
+
+  let extensionLevel: FvgSignal['extension']['extensionLevel'] = 'normal';
+  if (volumeDecline && rsiExtreme && (consecutiveBars >= 5 || absEmaDist > 8)) {
+    extensionLevel = 'exhaustion';
+  } else if (absEmaDist > 6 || consecutiveBars >= 6 || (rsiExtreme && absEmaDist > 4)) {
+    extensionLevel = 'overextended';
+  } else if (absEmaDist > 3 || consecutiveBars >= 4) {
+    extensionLevel = 'extended';
+  }
+
+  return {
+    emaDist9: Math.round(emaDist9 * 100) / 100,
+    emaDist21: Math.round(emaDist21 * 100) / 100,
+    consecutiveBars,
+    volumeDecline,
+    rsiExtreme,
+    extensionLevel,
+  };
+}
+
 function detectFvgSignals(
   candles: Candle[],
   timeframe: string,
