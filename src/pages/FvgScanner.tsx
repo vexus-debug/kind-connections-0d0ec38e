@@ -518,6 +518,36 @@ export default function FvgScanner() {
                               </div>
                             </>
                           )}
+                          {s.extension && (
+                            <>
+                              <div className="col-span-2 sm:col-span-3 border-t border-border mt-1 pt-1">
+                                <span className="text-muted-foreground font-semibold">Extension:</span>{' '}
+                                <span className={cn('font-bold', EXT_COLORS[s.extension.extensionLevel])}>
+                                  {EXT_LABELS[s.extension.extensionLevel]}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">EMA9 Dist:</span>{' '}
+                                <span className="font-medium">{s.extension.emaDist9 > 0 ? '+' : ''}{s.extension.emaDist9.toFixed(2)}%</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">EMA21 Dist:</span>{' '}
+                                <span className="font-medium">{s.extension.emaDist21 > 0 ? '+' : ''}{s.extension.emaDist21.toFixed(2)}%</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Consecutive:</span>{' '}
+                                <span className={cn('font-medium', s.extension.consecutiveBars >= 5 ? 'text-orange-400' : 'text-foreground')}>
+                                  {s.extension.consecutiveBars} bars
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Vol Decline:</span>{' '}
+                                <span className={cn('font-medium', s.extension.volumeDecline ? 'text-red-400' : 'text-foreground')}>
+                                  {s.extension.volumeDecline ? 'Yes ⚠' : 'No'}
+                                </span>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
