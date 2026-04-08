@@ -214,6 +214,7 @@ function detectFvgSignals(
               timeframe, direction: 'bull', score, signalType: 'fvg',
               candleIndex: i,
               fvg: { gapHigh: c2.low, gapLow: c0.high, gapSize: Math.round(gapSize * 1e6) / 1e6, gapPct: Math.round(gapPct * 100) / 100 },
+              extension,
               confirmation: baseConfirmation,
               timestamp: Date.now(),
             });
@@ -232,6 +233,7 @@ function detectFvgSignals(
               timeframe, direction: 'bear', score, signalType: 'fvg',
               candleIndex: i,
               fvg: { gapHigh: c0.low, gapLow: c2.high, gapSize: Math.round(gapSize * 1e6) / 1e6, gapPct: Math.round(gapPct * 100) / 100 },
+              extension,
               confirmation: baseConfirmation,
               timestamp: Date.now(),
             });
@@ -254,6 +256,7 @@ function detectFvgSignals(
             rangeAtr: Math.round(rangeVsAtr * 100) / 100,
             volumeRatio: Math.round(volumeRatio * 100) / 100,
           },
+          extension,
           confirmation: baseConfirmation,
           timestamp: Date.now(),
         });
@@ -277,6 +280,7 @@ function detectFvgSignals(
               rangeAtr: Math.round(rangeVsAtr * 100) / 100,
               volumeRatio: Math.round(volumeRatio * 100) / 100,
             },
+            extension,
             confirmation: baseConfirmation,
             timestamp: Date.now(),
           });
