@@ -290,6 +290,28 @@ export default function FvgScanner() {
             </button>
           ))}
         </div>
+
+        {/* Extension filter */}
+        <div className="flex flex-wrap items-center gap-1">
+          <ArrowUpRight className="h-3 w-3 text-muted-foreground mr-0.5" />
+          {([
+            { value: 'all' as ExtFilter, label: 'All Moves' },
+            { value: 'extended' as ExtFilter, label: '⚡ Extended+' },
+            { value: 'overextended' as ExtFilter, label: '🔥 Overextended' },
+            { value: 'exhaustion' as ExtFilter, label: '💀 Exhaustion' },
+          ]).map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setExtFilter(opt.value)}
+              className={cn(
+                'rounded px-1.5 py-0.5 text-[9px] font-medium transition-colors',
+                extFilter === opt.value ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-secondary'
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Results */}
