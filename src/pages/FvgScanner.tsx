@@ -2,6 +2,15 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { TrendingUp, TrendingDown, RefreshCw, Filter, Clock, BarChart3, Zap, ArrowUpRight, ArrowDownRight, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+interface FvgExtension {
+  emaDist9: number;
+  emaDist21: number;
+  consecutiveBars: number;
+  volumeDecline: boolean;
+  rsiExtreme: boolean;
+  extensionLevel: 'normal' | 'extended' | 'overextended' | 'exhaustion';
+}
+
 interface FvgSignal {
   symbol: string;
   price: number;
@@ -14,6 +23,7 @@ interface FvgSignal {
   candleIndex: number;
   fvg?: { gapHigh: number; gapLow: number; gapSize: number; gapPct: number };
   impulse?: { bodyPct: number; rangeAtr: number; volumeRatio: number };
+  extension?: FvgExtension;
   confirmation: {
     atr: number;
     atrRatio: number;
@@ -66,6 +76,21 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
+const EXT_COLORS: Record<string, string> = {
+  normal: 'bg-muted text-muted-foreground',
+  extended: 'bg-yellow-500/15 text-yellow-400',
+  overextended: 'bg-orange-500/15 text-orange-400',
+  exhaustion: 'bg-red-500/15 text-red-400',
+};
+
+const EXT_LABELS: Record<string, string> = {
+  normal: 'NORMAL',
+  extended: 'EXTENDED',
+  overextended: 'OVEREXTENDED',
+  exhaustion: 'EXHAUSTION',
+};
+
+type ExtFilter = 'all' | 'extended' | 'overextended' | 'exhaustion';
 type TypeFilter = 'all' | 'fvg' | 'impulse' | 'imbalance';
 
 const AUTO_REFRESH_MS = 15 * 60 * 1000;
@@ -77,6 +102,7 @@ export default function FvgScanner() {
   const [dirFilter, setDirFilter] = useState<'all' | 'bull' | 'bear'>('all');
   const [tfFilter, setTfFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
+  const [extFilter, setExtFilter] = useState<ExtFilter>('all');
   const [minScore, setMinScore] = useState(40);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(AUTO_REFRESH_MS);
@@ -133,6 +159,12 @@ export default function FvgScanner() {
     if (tfFilter !== 'all' && s.timeframe !== tfFilter) return false;
     if (typeFilter !== 'all' && s.signalType !== typeFilter) return false;
     if (s.score < minScore) return false;
+    if (extFilter !== 'all') {
+      const level = s.extension?.extensionLevel ?? 'normal';
+      if (extFilter === 'extended' && level === 'normal') return false;
+      if (extFilter === 'overextended' && level !== 'overextended' && level !== 'exhaustion') return false;
+      if (extFilter === 'exhaustion' && level !== 'exhaustion') return false;
+    }
     return true;
   });
 
@@ -258,6 +290,28 @@ export default function FvgScanner() {
             </button>
           ))}
         </div>
+
+        {/* Extension filter */}
+        <div className="flex flex-wrap items-center gap-1">
+          <ArrowUpRight className="h-3 w-3 text-muted-foreground mr-0.5" />
+          {([
+            { value: 'all' as ExtFilter, label: 'All Moves' },
+            { value: 'extended' as ExtFilter, label: '⚡ Extended+' },
+            { value: 'overextended' as ExtFilter, label: '🔥 Overextended' },
+            { value: 'exhaustion' as ExtFilter, label: '💀 Exhaustion' },
+          ]).map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setExtFilter(opt.value)}
+              className={cn(
+                'rounded px-1.5 py-0.5 text-[9px] font-medium transition-colors',
+                extFilter === opt.value ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-secondary'
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Results */}
@@ -370,6 +424,27 @@ export default function FvgScanner() {
                     {best.impulse.rangeAtr.toFixed(1)}x ATR
                   </span>
                 )}
+                {best.extension && best.extension.extensionLevel !== 'normal' && (
+                  <span className={cn('rounded px-1.5 py-0.5 text-[9px] font-bold', EXT_COLORS[best.extension.extensionLevel])}>
+                    {EXT_LABELS[best.extension.extensionLevel]}
+                    {best.extension.emaDist21 !== 0 && ` ${Math.abs(best.extension.emaDist21).toFixed(1)}%`}
+                  </span>
+                )}
+                {best.extension?.consecutiveBars && best.extension.consecutiveBars >= 4 && (
+                  <span className="rounded px-1.5 py-0.5 text-[9px] font-semibold bg-orange-500/20 text-orange-400">
+                    {best.extension.consecutiveBars} BARS
+                  </span>
+                )}
+                {best.extension?.volumeDecline && (
+                  <span className="rounded px-1.5 py-0.5 text-[9px] font-semibold bg-red-500/20 text-red-400">
+                    VOL↓
+                  </span>
+                )}
+                {best.extension?.rsiExtreme && (
+                  <span className="rounded px-1.5 py-0.5 text-[9px] font-semibold bg-rose-500/20 text-rose-400">
+                    RSI {best.confirmation.rsi.toFixed(0)}
+                  </span>
+                )}
               </div>
 
               {/* Expanded details */}
@@ -440,6 +515,36 @@ export default function FvgScanner() {
                               <div>
                                 <span className="text-muted-foreground">Range/ATR:</span>{' '}
                                 <span className="font-medium text-amber-400">{s.impulse.rangeAtr.toFixed(1)}x</span>
+                              </div>
+                            </>
+                          )}
+                          {s.extension && (
+                            <>
+                              <div className="col-span-2 sm:col-span-3 border-t border-border mt-1 pt-1">
+                                <span className="text-muted-foreground font-semibold">Extension:</span>{' '}
+                                <span className={cn('font-bold', EXT_COLORS[s.extension.extensionLevel])}>
+                                  {EXT_LABELS[s.extension.extensionLevel]}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">EMA9 Dist:</span>{' '}
+                                <span className="font-medium">{s.extension.emaDist9 > 0 ? '+' : ''}{s.extension.emaDist9.toFixed(2)}%</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">EMA21 Dist:</span>{' '}
+                                <span className="font-medium">{s.extension.emaDist21 > 0 ? '+' : ''}{s.extension.emaDist21.toFixed(2)}%</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Consecutive:</span>{' '}
+                                <span className={cn('font-medium', s.extension.consecutiveBars >= 5 ? 'text-orange-400' : 'text-foreground')}>
+                                  {s.extension.consecutiveBars} bars
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Vol Decline:</span>{' '}
+                                <span className={cn('font-medium', s.extension.volumeDecline ? 'text-red-400' : 'text-foreground')}>
+                                  {s.extension.volumeDecline ? 'Yes ⚠' : 'No'}
+                                </span>
                               </div>
                             </>
                           )}

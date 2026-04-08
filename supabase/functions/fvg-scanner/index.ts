@@ -24,14 +24,22 @@ interface FvgSignal {
   candleIndex: number;
   fvg?: { gapHigh: number; gapLow: number; gapSize: number; gapPct: number };
   impulse?: { bodyPct: number; rangeAtr: number; volumeRatio: number };
+  extension: {
+    emaDist9: number;       // % distance from EMA9
+    emaDist21: number;      // % distance from EMA21
+    consecutiveBars: number; // consecutive bars in same direction
+    volumeDecline: boolean; // volume declining over last 3 bars
+    rsiExtreme: boolean;    // RSI > 80 or < 20
+    extensionLevel: 'normal' | 'extended' | 'overextended' | 'exhaustion';
+  };
   confirmation: {
     atr: number;
-    atrRatio: number;        // current ATR vs 20-period avg ATR
-    bodyToRange: number;     // body / total range of candle
-    volumeRatio: number;     // volume vs 20 avg
+    atrRatio: number;
+    bodyToRange: number;
+    volumeRatio: number;
     rsi: number;
     emaAligned: boolean;
-    candlesAgo: number;      // 0 = current, 1 = last closed
+    candlesAgo: number;
   };
   timestamp: number;
 }
@@ -76,6 +84,55 @@ function calcRSI(closes: number[], period = 14): number[] {
 }
 
 // ─── FVG & Impulse Detection ───
+
+function calcExtension(
+  candles: Candle[],
+  i: number,
+  direction: 'bull' | 'bear',
+  ema9: number[],
+  ema21: number[],
+  rsi: number,
+): FvgSignal['extension'] {
+  const close = candles[i].close;
+  const emaDist9 = ema9[i] > 0 ? ((close - ema9[i]) / ema9[i]) * 100 : 0;
+  const emaDist21 = ema21[i] > 0 ? ((close - ema21[i]) / ema21[i]) * 100 : 0;
+
+  // Count consecutive bars in same direction
+  let consecutiveBars = 0;
+  for (let j = i; j >= 1; j--) {
+    const isBull = candles[j].close > candles[j].open;
+    if ((direction === 'bull' && isBull) || (direction === 'bear' && !isBull)) {
+      consecutiveBars++;
+    } else break;
+  }
+
+  // Volume decline: check if volume is declining over last 3 bars
+  let volumeDecline = false;
+  if (i >= 2) {
+    volumeDecline = candles[i].volume < candles[i - 1].volume && candles[i - 1].volume < candles[i - 2].volume;
+  }
+
+  const rsiExtreme = rsi > 80 || rsi < 20;
+  const absEmaDist = Math.abs(emaDist21);
+
+  let extensionLevel: FvgSignal['extension']['extensionLevel'] = 'normal';
+  if (volumeDecline && rsiExtreme && (consecutiveBars >= 5 || absEmaDist > 8)) {
+    extensionLevel = 'exhaustion';
+  } else if (absEmaDist > 6 || consecutiveBars >= 6 || (rsiExtreme && absEmaDist > 4)) {
+    extensionLevel = 'overextended';
+  } else if (absEmaDist > 3 || consecutiveBars >= 4) {
+    extensionLevel = 'extended';
+  }
+
+  return {
+    emaDist9: Math.round(emaDist9 * 100) / 100,
+    emaDist21: Math.round(emaDist21 * 100) / 100,
+    consecutiveBars,
+    volumeDecline,
+    rsiExtreme,
+    extensionLevel,
+  };
+}
 
 function detectFvgSignals(
   candles: Candle[],
@@ -131,6 +188,8 @@ function detectFvgSignals(
     const candlesAgo = len - 1 - i;
     const rsi = rsiArr[i] ?? 50;
 
+    const extension = calcExtension(candles, i, direction, ema9, ema21, rsi);
+
     const baseConfirmation = {
       atr: Math.round(curAtr * 1e6) / 1e6,
       atrRatio: Math.round(atrRatio * 100) / 100,
@@ -155,6 +214,7 @@ function detectFvgSignals(
               timeframe, direction: 'bull', score, signalType: 'fvg',
               candleIndex: i,
               fvg: { gapHigh: c2.low, gapLow: c0.high, gapSize: Math.round(gapSize * 1e6) / 1e6, gapPct: Math.round(gapPct * 100) / 100 },
+              extension,
               confirmation: baseConfirmation,
               timestamp: Date.now(),
             });
@@ -173,6 +233,7 @@ function detectFvgSignals(
               timeframe, direction: 'bear', score, signalType: 'fvg',
               candleIndex: i,
               fvg: { gapHigh: c0.low, gapLow: c2.high, gapSize: Math.round(gapSize * 1e6) / 1e6, gapPct: Math.round(gapPct * 100) / 100 },
+              extension,
               confirmation: baseConfirmation,
               timestamp: Date.now(),
             });
@@ -195,6 +256,7 @@ function detectFvgSignals(
             rangeAtr: Math.round(rangeVsAtr * 100) / 100,
             volumeRatio: Math.round(volumeRatio * 100) / 100,
           },
+          extension,
           confirmation: baseConfirmation,
           timestamp: Date.now(),
         });
@@ -218,6 +280,7 @@ function detectFvgSignals(
               rangeAtr: Math.round(rangeVsAtr * 100) / 100,
               volumeRatio: Math.round(volumeRatio * 100) / 100,
             },
+            extension,
             confirmation: baseConfirmation,
             timestamp: Date.now(),
           });
