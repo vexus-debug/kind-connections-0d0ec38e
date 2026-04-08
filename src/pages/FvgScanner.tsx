@@ -424,6 +424,27 @@ export default function FvgScanner() {
                     {best.impulse.rangeAtr.toFixed(1)}x ATR
                   </span>
                 )}
+                {best.extension && best.extension.extensionLevel !== 'normal' && (
+                  <span className={cn('rounded px-1.5 py-0.5 text-[9px] font-bold', EXT_COLORS[best.extension.extensionLevel])}>
+                    {EXT_LABELS[best.extension.extensionLevel]}
+                    {best.extension.emaDist21 !== 0 && ` ${Math.abs(best.extension.emaDist21).toFixed(1)}%`}
+                  </span>
+                )}
+                {best.extension?.consecutiveBars && best.extension.consecutiveBars >= 4 && (
+                  <span className="rounded px-1.5 py-0.5 text-[9px] font-semibold bg-orange-500/20 text-orange-400">
+                    {best.extension.consecutiveBars} BARS
+                  </span>
+                )}
+                {best.extension?.volumeDecline && (
+                  <span className="rounded px-1.5 py-0.5 text-[9px] font-semibold bg-red-500/20 text-red-400">
+                    VOL↓
+                  </span>
+                )}
+                {best.extension?.rsiExtreme && (
+                  <span className="rounded px-1.5 py-0.5 text-[9px] font-semibold bg-rose-500/20 text-rose-400">
+                    RSI {best.confirmation.rsi.toFixed(0)}
+                  </span>
+                )}
               </div>
 
               {/* Expanded details */}
