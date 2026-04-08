@@ -188,6 +188,8 @@ function detectFvgSignals(
     const candlesAgo = len - 1 - i;
     const rsi = rsiArr[i] ?? 50;
 
+    const extension = calcExtension(candles, i, direction, ema9, ema21, rsi);
+
     const baseConfirmation = {
       atr: Math.round(curAtr * 1e6) / 1e6,
       atrRatio: Math.round(atrRatio * 100) / 100,
