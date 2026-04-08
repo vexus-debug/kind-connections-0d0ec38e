@@ -2,6 +2,15 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { TrendingUp, TrendingDown, RefreshCw, Filter, Clock, BarChart3, Zap, ArrowUpRight, ArrowDownRight, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+interface FvgExtension {
+  emaDist9: number;
+  emaDist21: number;
+  consecutiveBars: number;
+  volumeDecline: boolean;
+  rsiExtreme: boolean;
+  extensionLevel: 'normal' | 'extended' | 'overextended' | 'exhaustion';
+}
+
 interface FvgSignal {
   symbol: string;
   price: number;
@@ -14,6 +23,7 @@ interface FvgSignal {
   candleIndex: number;
   fvg?: { gapHigh: number; gapLow: number; gapSize: number; gapPct: number };
   impulse?: { bodyPct: number; rangeAtr: number; volumeRatio: number };
+  extension?: FvgExtension;
   confirmation: {
     atr: number;
     atrRatio: number;
