@@ -91,6 +91,7 @@ const EXT_LABELS: Record<string, string> = {
 };
 
 type ExtFilter = 'all' | 'extended' | 'overextended' | 'exhaustion';
+type TypeFilter = 'all' | 'fvg' | 'impulse' | 'imbalance';
 
 const AUTO_REFRESH_MS = 15 * 60 * 1000;
 
